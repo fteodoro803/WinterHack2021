@@ -1,0 +1,23 @@
+IDEAS
+- Hint Button
+    - Solve one Square
+    - Solve Remainder
+- Customisable Grid (Size, Bombs)
+- Save/Load States (same Board)
+- In Setup Screen, making Grid Type a table
+
+PROGRESS
+- Intro Screen for Settings ()
+    - General Appearance (/)
+    - Functionality ()
+- make Buttons as Grid ()
+    - Save Board ()
+    - Bomb Counter ()
+- Manual Game ()
+    - Button Functionality ()
+        - Hide/Show Image (Bomb, Number, Empty, etc) ()
+        - End Game if Bomb ()
+- Solver Algorithm ()
+    - Logic ()
+    - Hint Button ()
+    - AI Solver ()
