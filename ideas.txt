@@ -1,0 +1,5 @@
+- Hint Button
+    - Solve one Square
+    - Solve Remainder
+- Customisable Grid (Size, Bombs)
+- Save States (same Board)
