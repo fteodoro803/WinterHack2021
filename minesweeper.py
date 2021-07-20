@@ -1,6 +1,7 @@
 # IMPORTS
 import tkinter
 from tkinter import *
+import re
 
 
 # SETUP SCREEN FUNCTIONS
@@ -17,32 +18,39 @@ def clickSelectOne2(selfButton, otherButton, buttonType, settings):  # Selects O
     #print(f"After -- Self: {selfButton['state']}, Other: {otherButton['state']}")
 
 def clickSelectDifficulty(selfButton, otherButton1, otherButton2, otherButton3, difficulty, settings):  # Selects One Button among Four Buttons (If disabled, then it's selected)
+    settings['difficulty'] = difficulty
+
     #print(f"Initial -- Self: {selfButton['state']}, Other: {otherButton['state']}")
     selfButton['state'] = tkinter.DISABLED
     otherButton1['state'] = tkinter.NORMAL
     otherButton2['state'] = tkinter.NORMAL
     otherButton3['state'] = tkinter.NORMAL
-    settings['difficulty'] = difficulty
-    if difficulty == 'easy':
-        settings['rows'] = 9
-        settings['columns'] = 9
-        settings['bombs'] = 10
-    elif difficulty == 'medium':
-        settings['rows'] = 16
-        settings['columns'] = 16
-        settings['bombs'] = 40
-    elif difficulty == 'hard':
-        settings['rows'] = 16
-        settings['columns'] = 30
-        settings['bombs'] = 99
-    elif difficulty == 'custom': #test
-        settings['rows'] = 'NOT DONE YET'
-        settings['columns'] = 'NOT DONE YET'
-        settings['bombs'] = 'NOT DONE YET'
     #print(f"After -- Self: {selfButton['state']}, Other: {otherButton['state']}")
 
 
 # MINESWEEPER FUNCTIONS
+def applySettings(settings, customSize=0, customBombs=0):
+    if settings['difficulty'] == 'easy':
+        settings['rows'] = 9
+        settings['columns'] = 9
+        settings['bombs'] = 10
+    elif settings['difficulty'] == 'medium':
+        settings['rows'] = 16
+        settings['columns'] = 16
+        settings['bombs'] = 40
+    elif settings['difficulty'] == 'hard':
+        settings['rows'] = 16
+        settings['columns'] = 30
+        settings['bombs'] = 99
+    elif settings['difficulty'] == 'custom':
+        print(f"Custom Size: {customSize.get()}, Custom Bombs: {customBombs.get()}")
+        customSizeValues = re.split('x', customSize.get())  # Regex to Split by 'x'
+        print(f"Custom Board: {customSizeValues}, Custom Bombs: {customBombs.get()}")
+
+        settings['rows'] = int(customSizeValues[0])
+        settings['columns'] = int(customSizeValues[1])
+        settings['bombs'] = int(customBombs.get())
+
 def displayGrid(settings):
     # Create & Configure root
     root = Tk()
@@ -65,7 +73,7 @@ def displayGrid(settings):
 
 
 # MAIN
-gameSettings = {'difficulty':0, 'solveType':0, 'generation':0, 'board':0}
+gameSettings = {'difficulty':'EMPTY', 'rows':'EMPTY', 'columns':'EMPTY', 'bombs':'EMPTY', 'solveType':'EMPTY', 'generation':'EMPTY', 'board':'EMPTY'}
 windowSettings = Tk()
 windowSettings.title("Minesweeper")
 windowSettings.geometry("450x300") #Size of Window
@@ -124,11 +132,18 @@ settings_Generate.grid(row=9, column=1)
 settings_Load = Button(windowSettings, text='Load', command=lambda: clickSelectOne2(settings_Load, settings_Generate, 'load', gameSettings)) #test - add functionality for this later
 settings_Load.grid(row=9, column=2)
 
+settings_ApplySettings = Button(windowSettings, text='Apply Settings', command=lambda:applySettings(gameSettings))
 settings_Start = Button(windowSettings, text='Start', command=lambda:minesweeper(windowSettings, gameSettings))
 settings_Start.grid(row=10, column=3)
 
 
 def minesweeper(self, settings):  # Minesweeper Game
+    print(settings_Custom['state'])  #shadowing, test, fix later
+    if settings_Custom['state'] == 'disabled':
+        applySettings(settings, settings_CustomSize, settings_CustomBombs) #FIX CHANGE THIS LATER
+    else:
+        applySettings(settings)
+
     print(settings)
     self.destroy()
     displayGrid(settings)

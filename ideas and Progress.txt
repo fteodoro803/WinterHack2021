@@ -1,4 +1,5 @@
 IDEAS
+- Assertions that Buttons were Pressed
 - Hint Button
     - Solve one Square
     - Solve Remainder
@@ -10,11 +11,11 @@ PROGRESS
 - Intro Screen for Settings ()
     - General Appearance (/)
     - Functionality (/)
-    - Custom Functionality
+    - Loading a Game ()
 - make Buttons refer to a Point on a 2d Array Board ()
     - Save Board ()
     - Bomb Counter ()
-    - Timer
+    - Timer ()
 - Manual Game ()
     - Button Functionality ()
         - Hide/Show Image (Bomb, Number, Empty, etc) ()
