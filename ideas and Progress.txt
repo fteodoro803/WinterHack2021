@@ -9,10 +9,12 @@ IDEAS
 PROGRESS
 - Intro Screen for Settings ()
     - General Appearance (/)
-    - Functionality ()
-- make Buttons as Grid ()
+    - Functionality (/)
+    - Custom Functionality
+- make Buttons refer to a Point on a 2d Array Board ()
     - Save Board ()
     - Bomb Counter ()
+    - Timer
 - Manual Game ()
     - Button Functionality ()
         - Hide/Show Image (Bomb, Number, Empty, etc) ()
