@@ -1,5 +1,6 @@
 IDEAS
 - Assertions that Buttons were Pressed
+    - Make a Check that there is enough space for bombs
 - Hint Button
     - Solve one Square
     - Solve Remainder
@@ -12,6 +13,7 @@ PROGRESS
     - General Appearance (/)
     - Functionality (/)
     - Loading a Game ()
+- Board Generation (/)
 - make Buttons refer to a Point on a 2d Array Board ()
     - Save Board ()
     - Bomb Counter ()

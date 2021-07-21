@@ -2,6 +2,7 @@
 import tkinter
 from tkinter import *
 import re
+from random import randrange
 
 
 # SETUP SCREEN FUNCTIONS
@@ -27,6 +28,25 @@ def clickSelectDifficulty(selfButton, otherButton1, otherButton2, otherButton3, 
     otherButton3['state'] = tkinter.NORMAL
     #print(f"After -- Self: {selfButton['state']}, Other: {otherButton['state']}")
 
+def checkGameValidity(self, settings):
+    # Checks if Bombs < Board Spaces
+    boardSpaces = settings['rows'] * settings['columns']
+    if settings['bombs'] > boardSpaces:
+        print('Invalid Game: too many Bombs')
+        return -1
+
+    # Checks if Game is at least 3x3
+    if settings['rows'] < 3 or settings['columns'] < 3:
+        print('Invalid Game: too few Rows or Columns')
+        return -1
+
+    # Check if Required Buttons were Pressed
+
+    # For Custom, check if Blanks were Filled
+
+    # For Custom, check if Rows x Column is in correct format
+
+    return 1
 
 # MINESWEEPER FUNCTIONS
 def applySettings(settings, customSize=0, customBombs=0):
@@ -43,15 +63,84 @@ def applySettings(settings, customSize=0, customBombs=0):
         settings['columns'] = 30
         settings['bombs'] = 99
     elif settings['difficulty'] == 'custom':
-        print(f"Custom Size: {customSize.get()}, Custom Bombs: {customBombs.get()}")
+        #print(f"Custom Size: {customSize.get()}, Custom Bombs: {customBombs.get()}")
         customSizeValues = re.split('x', customSize.get())  # Regex to Split by 'x'
-        print(f"Custom Board: {customSizeValues}, Custom Bombs: {customBombs.get()}")
+        #print(f"Custom Board: {customSizeValues}, Custom Bombs: {customBombs.get()}")
 
         settings['rows'] = int(customSizeValues[0])
         settings['columns'] = int(customSizeValues[1])
         settings['bombs'] = int(customBombs.get())
 
-def displayGrid(settings):
+def generateBoard(numRows, numColumns, numBombs):
+    board = []
+
+    # Initialise Board
+    for row in range(numRows):
+        emptyRow = []
+        for column in range(numColumns):
+            emptyRow.append(0)
+        board.append(emptyRow)
+
+    # Places Random Bombs
+    coordinatesPlacedBombs = []
+    numBombsPlaced = 0
+    while numBombsPlaced != numBombs:
+        randomRow = randrange(0, numRows)
+        randomColumn = randrange(0, numColumns)
+        newBomb = [randomRow, randomColumn]
+        #print(f"New Bomb Location: {newBomb}")
+
+        if newBomb not in coordinatesPlacedBombs:  # Checks if Bomb isn't there, then Places it
+            board[randomRow][randomColumn] = 'B'
+            coordinatesPlacedBombs.append(newBomb)
+
+            #add adjacentBombCount to surrounding points
+            # Checks Tiles Adjacent to Bomb and adds Number
+            for i in range(3):
+                # Row Boundaries
+                rowBoundaryIndex = randomRow - 1 + i  # the -1 is to take the Above Row into Account
+                if rowBoundaryIndex >= 0 and rowBoundaryIndex <= len(
+                        board) - 1:  # -1 in len(board)-1 is to make sure it's within Row Boundaries
+                    # print(board[selectedRow-1+i])
+
+                    # Column Boundaries
+                    for j in range(3):
+                        columnBoundaryIndex = randomColumn - 1 + j
+                        # print(f"Column Boundary Index: {columnBoundaryIndex}")
+                        if columnBoundaryIndex >= 0 and columnBoundaryIndex <= len(board[i]) - 1:
+                            #print(board[selectedRow - 1 + i][selectedColumn - 1 + j])
+                            #print(f"Point {board[rowBoundaryIndex][columnBoundaryIndex]}")
+                            currPoint = str(board[rowBoundaryIndex][columnBoundaryIndex])  # You could either get a num or a str, and this checks by converting fully to str
+                            if currPoint.isnumeric():
+                                board[rowBoundaryIndex][columnBoundaryIndex] += 1  # The Current Point is Incremented
+
+            numBombsPlaced += 1
+
+    # Checks Surrounding Bombs
+    #numSurroundingBombs = 0
+    for row in range(numRows):
+        #print(f"Row: {board[row]}")
+        for column in range(numColumns):
+            currentPoint = board[row][column]
+            #numSurroundingBombs = countBombNeighbours(board, currentPoint)
+
+    #test, prints out the board
+    # makes everything on the board a string so grid is aligned in print testing
+    for i in range(numRows):
+        for j in range(numColumns):
+            board[i][j] = str(board[i][j])
+
+    print('\n---------------------------------------------------------------------')
+    for i in range(len(board)):
+        print(board[i])
+    print('---------------------------------------------------------------------')
+
+    return 0
+
+def addAdjacentBombCount(board, point):
+    return
+
+def displayBoard(settings):
     # Create & Configure root
     root = Tk()
     Grid.rowconfigure(root, 0, weight=1)
@@ -133,24 +222,33 @@ settings_Load = Button(windowSettings, text='Load', command=lambda: clickSelectO
 settings_Load.grid(row=9, column=2)
 
 settings_ApplySettings = Button(windowSettings, text='Apply Settings', command=lambda:applySettings(gameSettings))
-settings_Start = Button(windowSettings, text='Start', command=lambda:minesweeper(windowSettings, gameSettings))
+settings_Start = Button(windowSettings, text='Start', command=lambda:minesweeper(windowSettings, gameSettings, settings_Custom, settings_CustomSize, settings_CustomBombs))
 settings_Start.grid(row=10, column=3)
 
 
-def minesweeper(self, settings):  # Minesweeper Game
-    print(settings_Custom['state'])  #shadowing, test, fix later
-    if settings_Custom['state'] == 'disabled':
-        applySettings(settings, settings_CustomSize, settings_CustomBombs) #FIX CHANGE THIS LATER
+def minesweeper(self, settings, customButton, customSize, customBombs):  # Minesweeper Game
+    print(f"Custom Button State: {customButton['state']}")
+    if customButton['state'] == 'disabled':  # Checking if Custom Button Was Pressed
+        applySettings(settings, customSize, customBombs)
     else:
         applySettings(settings)
 
-    print(settings)
+    # Make Assertion that most things cant be empty
+    if checkGameValidity(self, settings) == -1:
+        self.destroy()
+        return
+    else:
+        print("Valid Game")
+
+
+    print(f"Settings: {settings}")
     self.destroy()
-    displayGrid(settings)
+    generateBoard(settings['rows'], settings['columns'], settings['bombs'])
+    displayBoard(settings)
 
 mainloop()
 
 """
-EXTERNAL CODE REFERENCSE:
+EXTERNAL CODE REFERENCE:
 1. generateGrid() adapted from: https://stackoverflow.com/a/38809894
 """
