@@ -37,6 +37,8 @@ def checkGameValidity(self, settings):
         print('Invalid Game: too few Rows or Columns')
         return -1
 
+    # Checks if within Upper Limit
+
     # Checks if there is at least 1 Bomb
     if settings['bombs'] <= 0:
         print('Invalid Game: too few Bombs')
@@ -47,6 +49,8 @@ def checkGameValidity(self, settings):
     # For Custom, check if Blanks were Filled
 
     # For Custom, check if Rows x Column is in correct format
+
+    # Check if Valid Board(all rows and columns are of equal len, numbers are same as what would be generated when placed in bomb locations, etc)
 
     return 1
 
@@ -121,6 +125,21 @@ def generateBoard(numRows, numColumns, numBombs):
 
     return 0
 
+def buttonLeftClick(coordinates, dictionary):
+    print(dictionary[coordinates])
+
+    currButton = dictionary[coordinates]
+
+    currButton['button']['bg'] = 'red'
+
+
+    currButton['state'] = 1 # 1 denotes that it has been pressed
+
+
+def buttonRightClick(coordinates, dictionary):
+    dictionary[coordinates]['button']['bg'] = 'red'
+
+
 # Displays the Minesweeper Board
 def displayBoard(settings):
     # Creates and Configures Root
@@ -133,14 +152,49 @@ def displayBoard(settings):
     frame.grid(row=0, column=0, sticky=N + S + E + W)
 
     # Creates a Rows x Columns Grid of Buttons
+    buttonList = []  # Stores Button Locations
+    buttonDictionary = {}
+    #ORIGINAL IDEA
+    """for row in range(settings['rows']):
+        Grid.rowconfigure(frame, row, weight=1)
+
+        for column in range(settings['columns']):
+            Grid.columnconfigure(frame, column, weight=1) #original
+
+            #button = Button(frame, height=1, width=2, text='', command=lambda coord=[row,column]: buttonLeftClick(coord))  # create a button inside frame  || future, should check where it is in the button list to correspond to a point
+            button = Button(frame, height=1, width=2, text='', command=lambda coord=(row,column): buttonLeftClick(button, coord, buttonDictionary))  # create a button inside frame  || future, should check where it is in the button list to correspond to a point
+
+
+            #button = Button(frame, height=1, width=2, text='', command=lambda ROW=row, COLUMN=column: buttonRightClick(button, ROW, COLUMN))  # right click test, delete
+
+            button.grid(row=row, column=column, sticky=N + S + E + W) #original
+
+            coords = (row, column)
+            buttonDictionary[coords] = {'button':button, 'coordinates':coords, 'state':0}"""
+
+    #NEW IDEA (SPLITTING THE BUTTON MODIFYING AND THE RENDERING)
+    #modifying
+    for row in range(settings['rows']):
+        for column in range(settings['columns']):
+            # button = Button(frame, height=1, width=2, text='', command=lambda coord=[row,column]: buttonLeftClick(coord))  # create a button inside frame  || future, should check where it is in the button list to correspond to a point
+            button = Button(frame, height=1, width=2, text='',
+                            command=lambda coord=(row, column): buttonLeftClick(coord,
+                                                                                buttonDictionary))  # create a button inside frame  || future, should check where it is in the button list to correspond to a point
+
+            # button = Button(frame, height=1, width=2, text='', command=lambda ROW=row, COLUMN=column: buttonRightClick(button, ROW, COLUMN))  # right click test, delete
+
+            coords = (row, column)
+            buttonDictionary[coords] = {'button': button, 'coordinates': coords, 'state': 0}
+
+    #rendering
     for row in range(settings['rows']):
         Grid.rowconfigure(frame, row, weight=1)
         for column in range(settings['columns']):
-            Grid.columnconfigure(frame, column, weight=1)
-            button = Button(frame, height=1, width=2)  # create a button inside frame
-            button.grid(row=row, column=column, sticky=N + S + E + W)
+            Grid.columnconfigure(frame, column, weight=1)  # original
+            buttonDictionary[(row,column)]['button'].grid(row=row, column=column, sticky=N + S + E + W)  # original
 
-    root.mainloop()
+    print(buttonDictionary)
+    #root.mainloop()  #test, i think from a vid i saw it's bad to nest tkinter loops (check vid history)
 
 
 # TESTING FUNCTIONS
