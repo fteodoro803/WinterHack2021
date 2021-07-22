@@ -123,21 +123,37 @@ def generateBoard(numRows, numColumns, numBombs):
 
     printBoard(board)#test
 
-    return 0
+    return board
 
-def buttonLeftClick(coordinates, dictionary):
+def buttonLeftClick(coordinates, dictionary, board):
     print(dictionary[coordinates])
-
     currButton = dictionary[coordinates]
 
-    currButton['button']['bg'] = 'red'
-
+    currButton['button']['bg'] = '#bebebe'
+    currButton['button']['text'] = board[coordinates[0]][coordinates[1]]
 
     currButton['state'] = 1 # 1 denotes that it has been pressed
+    currButton['button']['state'] = tkinter.DISABLED
+
+    if board[coordinates[0]][coordinates[1]] == 'B':
+        print('GAME DONE')
+        #exit()
 
 
-def buttonRightClick(coordinates, dictionary):
-    dictionary[coordinates]['button']['bg'] = 'red'
+def buttonRightClick(coordinates, dictionary, remainingBombLabel):
+    global bombCounter
+    currButton = dictionary[coordinates]
+
+    if currButton['button']['bg'] == 'SystemButtonFace':  # Select, note SystemButtonFace is the default Colour
+
+        dictionary[coordinates]['button']['bg'] = 'red'
+        bombCounter -= 1
+    else: # Deselect
+        dictionary[coordinates]['button']['bg'] = 'SystemButtonFace'
+        bombCounter += 1
+
+    #print(bombCounter)
+    remainingBombLabel['text'] = f"Bombs Remaining: {bombCounter}"
 
 
 # Displays the Minesweeper Board
@@ -150,6 +166,10 @@ def displayBoard(settings):
     # Create and Configures Frame
     frame = Frame(root)
     frame.grid(row=0, column=0, sticky=N + S + E + W)
+
+    # Bomb Counter
+    global bombCounter
+    bombCounter = settings['bombs']
 
     # Creates a Rows x Columns Grid of Buttons
     buttonList = []  # Stores Button Locations
@@ -176,12 +196,10 @@ def displayBoard(settings):
     #modifying
     for row in range(settings['rows']):
         for column in range(settings['columns']):
-            # button = Button(frame, height=1, width=2, text='', command=lambda coord=[row,column]: buttonLeftClick(coord))  # create a button inside frame  || future, should check where it is in the button list to correspond to a point
-            button = Button(frame, height=1, width=2, text='',
-                            command=lambda coord=(row, column): buttonLeftClick(coord,
-                                                                                buttonDictionary))  # create a button inside frame  || future, should check where it is in the button list to correspond to a point
-
-            # button = Button(frame, height=1, width=2, text='', command=lambda ROW=row, COLUMN=column: buttonRightClick(button, ROW, COLUMN))  # right click test, delete
+            #button = Button(frame, height=1, width=2, text='', command=lambda coord=(row, column): buttonLeftClick(coord, buttonDictionary, settings['board']))  # create a button inside frame  || future, should check where it is in the button list to correspond to a point
+            button = Button(frame, height=1, width=2, text='')
+            button.bind("<Button-1>", lambda event, coord=(row, column): buttonLeftClick(coord, buttonDictionary, settings['board']))
+            button.bind("<Button-3>", lambda event, coord=(row, column): buttonRightClick(coord, buttonDictionary, bombCountLabel))
 
             coords = (row, column)
             buttonDictionary[coords] = {'button': button, 'coordinates': coords, 'state': 0}
@@ -192,6 +210,9 @@ def displayBoard(settings):
         for column in range(settings['columns']):
             Grid.columnconfigure(frame, column, weight=1)  # original
             buttonDictionary[(row,column)]['button'].grid(row=row, column=column, sticky=N + S + E + W)  # original
+    bombCountLabel = Label(text=f"Bombs Remaining: {bombCounter}")
+    bombCountLabel.grid(row=settings['rows'] + 1, column=0)
+
 
     print(buttonDictionary)
     #root.mainloop()  #test, i think from a vid i saw it's bad to nest tkinter loops (check vid history)
@@ -294,9 +315,10 @@ def minesweeper(self, settings, customButton, customSize, customBombs):  # Mines
         print("Valid Game")
 
 
-    print(f"Settings: {settings}") # test
     self.destroy()
-    generateBoard(settings['rows'], settings['columns'], settings['bombs'])
+    board = generateBoard(settings['rows'], settings['columns'], settings['bombs'])
+    settings['board'] = board
+    print(f"Settings: {settings}")
     displayBoard(settings)
 
 mainloop()
