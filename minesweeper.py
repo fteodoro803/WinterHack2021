@@ -126,92 +126,133 @@ def generateBoard(numRows, numColumns, numBombs):
     return board
 
 def buttonLeftClick(coordinates, dictionary, board):
-    print(dictionary[coordinates])
+    #print(dictionary[coordinates])
     currTile = dictionary[coordinates]
 
-    currTile['button']['bg'] = '#bebebe'
-    currTile['button']['text'] = board[coordinates[0]][coordinates[1]]
+    if dictionary[coordinates]['state'] != 2: # if it's not red marked
+        currTile['button']['bg'] = '#bebebe'
+        currTile['button']['text'] = board[coordinates[0]][coordinates[1]]
 
-    currTile['state'] = 0 # 0 denotes that it has been pressed/disabled
-    currTile['button']['state'] = tkinter.DISABLED
+        currTile['state'] = 0 # 0 denotes that it has been pressed/disabled
+        currTile['button']['state'] = tkinter.DISABLED
 
-    if board[coordinates[0]][coordinates[1]] == '0':
-        clearZeroes(coordinates, dictionary, board)
-        #try doing a for loop of clearing everything in the immediate vicinity rather than recursing it
-    elif board[coordinates[0]][coordinates[1]] == 'B':
-        print('GAME DONE')
-        #Display an End Game Screen
-        #exit()
+        if board[coordinates[0]][coordinates[1]] == '0':
+            clearZeroes(coordinates, dictionary, board)
 
+        elif board[coordinates[0]][coordinates[1]] == 'B':
+            print('GAME DONE')
+            #Display an End Game Screen
+            #exit()
+
+# Marks Bomb Location (Also important for win-checking)
 def buttonRightClick(coordinates, dictionary, remainingBombLabel):
     global bombCounter
     currButton = dictionary[coordinates]
 
-    if currButton['state'] == 1:  # Checks if Button is still Enabled
+    if currButton['state'] != 0:  # Checks if Button is still Enabled
         if currButton['button']['bg'] == 'SystemButtonFace':  # Select, note SystemButtonFace is the default Colour
             dictionary[coordinates]['button']['bg'] = 'red'
+            currButton['state'] = 2 # 2 means that it's been right clicked
             bombCounter -= 1
         else: # Deselect
             dictionary[coordinates]['button']['bg'] = 'SystemButtonFace'
+            currButton['state'] = 1
             bombCounter += 1
 
     #print(bombCounter)
     remainingBombLabel['text'] = f"Bombs Remaining: {bombCounter}"
 
-def clearZeroes(coordinates, dictionary, board):
-    print(f"Current Coordinates: ({coordinates[0], coordinates[1]})")
+    if bombCounter == 0:  # AND ALL TILES HAVE BEEN SELECTED
+        print('WINWIN??')
 
-   # Up
+def clearZeroes(coordinates, dictionary, board):
+    #print(f"Current Coordinates: ({coordinates[0], coordinates[1]})")
+    canLeft = 0
+    canRight = 0
+    canUp = 0
+    canDown = 0
+
+    # Up
     upElement = board[coordinates[0]-1][coordinates[1]]
     if coordinates[0]-1 >= 0:  # ensures no wrapping
-        if upElement == '0':  # checks if can go up
+        if upElement != 'B':  # checks if can go up
             #print('expand up')
             upElementCoordinates = (coordinates[0]-1, coordinates[1])
             upElementState = dictionary[upElementCoordinates]['state']  # checks if it has been pressed or not
-            #print(f"\tUp Element State: {upElementState}")
+            #print(f"Up Element State: {upElementState}")
+            canUp = 1
             if upElementState == 1:  # button still active
-                print('expand up')
+                #print('expand up')
                 buttonLeftClick(upElementCoordinates, dictionary, board)
 
     # Down
     try:  # ensures that there is a row below
         downElement = board[coordinates[0]+1][coordinates[1]]
-        if downElement == '0':
+        if downElement != 'B':
             #print('expand down')
             downElementCoordinates = (coordinates[0]+1, coordinates[1])
             downElementState = dictionary[downElementCoordinates]['state']
+            canDown = 1
             if downElementState == 1:
-                print('expand down')
+                #print('expand down')
                 buttonLeftClick(downElementCoordinates, dictionary, board)
-
     except IndexError:
         pass
 
     # Left
     leftElement = board[coordinates[0]][coordinates[1]-1]
     if coordinates[1]-1 >= 0:  # ensures no wrapping
-        if leftElement == '0':
+        if leftElement != 'B':
             #print('expand left')
             leftElementCoordinates = (coordinates[0], coordinates[1]-1)
             leftElementState = dictionary[leftElementCoordinates]['state']
+            canLeft = 1
             if leftElementState == 1:
-                print('expand left')
+                #print('expand left')
                 buttonLeftClick(leftElementCoordinates, dictionary, board)
-
 
     # Right
     try:  # ensures that there is a row below
         rightElement = board[coordinates[0]][coordinates[1]+1]
-        if rightElement == '0':
+        if rightElement != 'B':
             #print('expand right')
             rightElementCoordinates = (coordinates[0], coordinates[1]+1)
             rightElementState = dictionary[rightElementCoordinates]['state']
+            canRight = 1
             if rightElementState == 1:
-                print('expand right')
+                #print('expand right')
                 buttonLeftClick(rightElementCoordinates, dictionary, board)
-
     except IndexError:
         pass
+
+    #Diagonals
+    # Upleft
+    if canUp == 1 and canLeft == 1:
+        upleftElementCoordinates = (coordinates[0]-1, coordinates[1]-1)
+        upleftElementState = dictionary[upleftElementCoordinates]['state']
+        if upleftElementState == 1:
+            buttonLeftClick(upleftElementCoordinates, dictionary, board)
+
+    # Upright
+    if canUp == 1 and canRight == 1:
+        uprightElementCoordinates = (coordinates[0] - 1, coordinates[1] + 1)
+        uprightElementState = dictionary[uprightElementCoordinates]['state']
+        if uprightElementState == 1:
+            buttonLeftClick(uprightElementCoordinates, dictionary, board)
+
+    # Downleft
+    if canDown == 1 and canLeft == 1:
+        downLeftElementCoordinates = (coordinates[0] + 1, coordinates[1] - 1)
+        downleftElementState = dictionary[downLeftElementCoordinates]['state']
+        if downleftElementState == 1:
+            buttonLeftClick(downLeftElementCoordinates, dictionary, board)
+
+    # Downright
+    if canDown == 1 and canRight == 1:
+        downRightElementCoordinates = (coordinates[0] + 1, coordinates[1] + 1)
+        downRightElementState = dictionary[downRightElementCoordinates]['state']
+        if downRightElementState == 1:
+            buttonLeftClick(downRightElementCoordinates, dictionary, board)
 
 
 # Displays the Minesweeper Board
@@ -274,6 +315,10 @@ def displayBoard(settings):
 
     print(buttonDictionary)
     #root.mainloop()  #test, i think from a vid i saw it's bad to nest tkinter loops (check vid history)
+
+# Check Win Condition
+def checkWin(dictionary):
+    return
 
 
 # TESTING FUNCTIONS
