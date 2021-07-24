@@ -126,6 +126,7 @@ def generateBoard(numRows, numColumns, numBombs):
     return board
 
 def buttonLeftClick(coordinates, dictionary, board):
+    global bombCounter
     #print(dictionary[coordinates])
     currTile = dictionary[coordinates]
 
@@ -140,12 +141,17 @@ def buttonLeftClick(coordinates, dictionary, board):
             clearZeroes(coordinates, dictionary, board)
 
         elif board[coordinates[0]][coordinates[1]] == 'B':
-            print('GAME DONE')
+            print('U LOST')
             #Display an End Game Screen
-            #exit()
+            exit()
+
+    if bombCounter == 0:  # AND ALL TILES HAVE BEEN SELECTED
+        #try to get all coordinates of red-flags to see if it's bomb
+        checkWin(dictionary, board)
+        #print('LWIN?')
 
 # Marks Bomb Location (Also important for win-checking)
-def buttonRightClick(coordinates, dictionary, remainingBombLabel):
+def buttonRightClick(coordinates, dictionary, board, remainingBombLabel):
     global bombCounter
     currButton = dictionary[coordinates]
 
@@ -163,7 +169,9 @@ def buttonRightClick(coordinates, dictionary, remainingBombLabel):
     remainingBombLabel['text'] = f"Bombs Remaining: {bombCounter}"
 
     if bombCounter == 0:  # AND ALL TILES HAVE BEEN SELECTED
-        print('WINWIN??')
+        #try to get all coordinates of red-flags to see if it's bomb
+        checkWin(dictionary, board)
+        #print('RWIN?')
 
 def clearZeroes(coordinates, dictionary, board):
     #print(f"Current Coordinates: ({coordinates[0], coordinates[1]})")
@@ -271,34 +279,15 @@ def displayBoard(settings):
     bombCounter = settings['bombs']
 
     # Creates a Rows x Columns Grid of Buttons
-    buttonList = []  # Stores Button Locations
     buttonDictionary = {}
-    #ORIGINAL IDEA
-    """for row in range(settings['rows']):
-        Grid.rowconfigure(frame, row, weight=1)
 
-        for column in range(settings['columns']):
-            Grid.columnconfigure(frame, column, weight=1) #original
-
-            #button = Button(frame, height=1, width=2, text='', command=lambda coord=[row,column]: buttonLeftClick(coord))  # create a button inside frame  || future, should check where it is in the button list to correspond to a point
-            button = Button(frame, height=1, width=2, text='', command=lambda coord=(row,column): buttonLeftClick(button, coord, buttonDictionary))  # create a button inside frame  || future, should check where it is in the button list to correspond to a point
-
-
-            #button = Button(frame, height=1, width=2, text='', command=lambda ROW=row, COLUMN=column: buttonRightClick(button, ROW, COLUMN))  # right click test, delete
-
-            button.grid(row=row, column=column, sticky=N + S + E + W) #original
-
-            coords = (row, column)
-            buttonDictionary[coords] = {'button':button, 'coordinates':coords, 'state':0}"""
-
-    #NEW IDEA (SPLITTING THE BUTTON MODIFYING AND THE RENDERING)
     #modifying
     for row in range(settings['rows']):
         for column in range(settings['columns']):
             #button = Button(frame, height=1, width=2, text='', command=lambda coord=(row, column): buttonLeftClick(coord, buttonDictionary, settings['board']))  # create a button inside frame  || future, should check where it is in the button list to correspond to a point
             button = Button(frame, height=1, width=2, text='')
             button.bind("<Button-1>", lambda event, coord=(row, column): buttonLeftClick(coord, buttonDictionary, settings['board']))
-            button.bind("<Button-3>", lambda event, coord=(row, column): buttonRightClick(coord, buttonDictionary, bombCountLabel))
+            button.bind("<Button-3>", lambda event, coord=(row, column): buttonRightClick(coord, buttonDictionary, settings['board'], bombCountLabel))
 
             coords = (row, column)
             buttonDictionary[coords] = {'button': button, 'coordinates': coords, 'state': 1}
@@ -317,7 +306,28 @@ def displayBoard(settings):
     #root.mainloop()  #test, i think from a vid i saw it's bad to nest tkinter loops (check vid history)
 
 # Check Win Condition
-def checkWin(dictionary):
+def checkWin(dictionary, board):
+    keyList = list(dictionary.keys())
+    valList = list(dictionary.values())
+    #print(f"\tKeyList: {keyList}")
+    #print(f"\tValList: {valList}")
+
+    numMarkedBombs = 0
+    numSafeTiles = 0 #tiles that aren't bombs
+    numTiles = len(board) * len(board[0])  # numRows = len(board); numColumns = len(board[0])  * all rows should be of equal length
+
+    for key in keyList:
+        tileState = dictionary[key]['state']
+        tileAttributes = dictionary[key]
+        if tileState == 0:
+            numSafeTiles += 1
+        elif tileState == 2:
+            numMarkedBombs += 1
+
+    print(f"Safe Tiles = {numSafeTiles}, Marked Bombs = {numMarkedBombs}, Num Tiles = {numTiles}")
+
+    if numMarkedBombs + numSafeTiles == numTiles:
+        print("U WIN MATE")
     return
 
 
