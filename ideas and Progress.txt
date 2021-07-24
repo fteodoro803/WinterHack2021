@@ -30,4 +30,3 @@ PROGRESS
     - AI Solver ()
 
 CURRENT ISSUES
-- you are able to right click an already-disabled button

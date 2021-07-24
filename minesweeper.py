@@ -91,8 +91,8 @@ def incrementSurroundingBombCount(board, row, column):
             for currColumn in range(ROWCOLNUM):
                 columnBoundaryIndex = column - 1 + currColumn
                 if columnBoundaryIndex >= 0 and columnBoundaryIndex <= len(board[currRow]) - 1:
-                    currPoint = str(board[rowBoundaryIndex][columnBoundaryIndex])  # You could either get a num or a str, and this checks by converting fully to str
-                    if currPoint.isnumeric():
+                    currPointVal = str(board[rowBoundaryIndex][columnBoundaryIndex])  # You could either get a num or a str, and this checks by converting fully to str
+                    if currPointVal.isnumeric():
                         board[rowBoundaryIndex][columnBoundaryIndex] += 1  # The Current Point is Incremented
 
 # Generates the Minesweeper Board
@@ -127,33 +127,91 @@ def generateBoard(numRows, numColumns, numBombs):
 
 def buttonLeftClick(coordinates, dictionary, board):
     print(dictionary[coordinates])
-    currButton = dictionary[coordinates]
+    currTile = dictionary[coordinates]
 
-    currButton['button']['bg'] = '#bebebe'
-    currButton['button']['text'] = board[coordinates[0]][coordinates[1]]
+    currTile['button']['bg'] = '#bebebe'
+    currTile['button']['text'] = board[coordinates[0]][coordinates[1]]
 
-    currButton['state'] = 1 # 1 denotes that it has been pressed
-    currButton['button']['state'] = tkinter.DISABLED
+    currTile['state'] = 0 # 0 denotes that it has been pressed/disabled
+    currTile['button']['state'] = tkinter.DISABLED
 
-    if board[coordinates[0]][coordinates[1]] == 'B':
+    if board[coordinates[0]][coordinates[1]] == '0':
+        clearZeroes(coordinates, dictionary, board)
+        #try doing a for loop of clearing everything in the immediate vicinity rather than recursing it
+    elif board[coordinates[0]][coordinates[1]] == 'B':
         print('GAME DONE')
+        #Display an End Game Screen
         #exit()
-
 
 def buttonRightClick(coordinates, dictionary, remainingBombLabel):
     global bombCounter
     currButton = dictionary[coordinates]
 
-    if currButton['button']['bg'] == 'SystemButtonFace':  # Select, note SystemButtonFace is the default Colour
-
-        dictionary[coordinates]['button']['bg'] = 'red'
-        bombCounter -= 1
-    else: # Deselect
-        dictionary[coordinates]['button']['bg'] = 'SystemButtonFace'
-        bombCounter += 1
+    if currButton['state'] == 1:  # Checks if Button is still Enabled
+        if currButton['button']['bg'] == 'SystemButtonFace':  # Select, note SystemButtonFace is the default Colour
+            dictionary[coordinates]['button']['bg'] = 'red'
+            bombCounter -= 1
+        else: # Deselect
+            dictionary[coordinates]['button']['bg'] = 'SystemButtonFace'
+            bombCounter += 1
 
     #print(bombCounter)
     remainingBombLabel['text'] = f"Bombs Remaining: {bombCounter}"
+
+def clearZeroes(coordinates, dictionary, board):
+    print(f"Current Coordinates: ({coordinates[0], coordinates[1]})")
+
+   # Up
+    upElement = board[coordinates[0]-1][coordinates[1]]
+    if coordinates[0]-1 >= 0:  # ensures no wrapping
+        if upElement == '0':  # checks if can go up
+            #print('expand up')
+            upElementCoordinates = (coordinates[0]-1, coordinates[1])
+            upElementState = dictionary[upElementCoordinates]['state']  # checks if it has been pressed or not
+            #print(f"\tUp Element State: {upElementState}")
+            if upElementState == 1:  # button still active
+                print('expand up')
+                buttonLeftClick(upElementCoordinates, dictionary, board)
+
+    # Down
+    try:  # ensures that there is a row below
+        downElement = board[coordinates[0]+1][coordinates[1]]
+        if downElement == '0':
+            #print('expand down')
+            downElementCoordinates = (coordinates[0]+1, coordinates[1])
+            downElementState = dictionary[downElementCoordinates]['state']
+            if downElementState == 1:
+                print('expand down')
+                buttonLeftClick(downElementCoordinates, dictionary, board)
+
+    except IndexError:
+        pass
+
+    # Left
+    leftElement = board[coordinates[0]][coordinates[1]-1]
+    if coordinates[1]-1 >= 0:  # ensures no wrapping
+        if leftElement == '0':
+            #print('expand left')
+            leftElementCoordinates = (coordinates[0], coordinates[1]-1)
+            leftElementState = dictionary[leftElementCoordinates]['state']
+            if leftElementState == 1:
+                print('expand left')
+                buttonLeftClick(leftElementCoordinates, dictionary, board)
+
+
+    # Right
+    try:  # ensures that there is a row below
+        rightElement = board[coordinates[0]][coordinates[1]+1]
+        if rightElement == '0':
+            #print('expand right')
+            rightElementCoordinates = (coordinates[0], coordinates[1]+1)
+            rightElementState = dictionary[rightElementCoordinates]['state']
+            if rightElementState == 1:
+                print('expand right')
+                buttonLeftClick(rightElementCoordinates, dictionary, board)
+
+    except IndexError:
+        pass
 
 
 # Displays the Minesweeper Board
@@ -202,7 +260,7 @@ def displayBoard(settings):
             button.bind("<Button-3>", lambda event, coord=(row, column): buttonRightClick(coord, buttonDictionary, bombCountLabel))
 
             coords = (row, column)
-            buttonDictionary[coords] = {'button': button, 'coordinates': coords, 'state': 0}
+            buttonDictionary[coords] = {'button': button, 'coordinates': coords, 'state': 1}
 
     #rendering
     for row in range(settings['rows']):
