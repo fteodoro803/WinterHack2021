@@ -19,7 +19,7 @@ PROGRESS
     - Save Board ()
     - Bomb Counter (/)
     - Timer ()
-- Manual Game ()
+- Manual Game (/)
     - Clear Field of Zeroes (/)
     - Button Functionality ()
         - Hide/Show (Bomb, Number, Empty, etc) (/)

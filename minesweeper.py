@@ -26,7 +26,7 @@ def clickSelectDifficulty(selfButton, otherButton1, otherButton2, otherButton3, 
 
 # Checks if Game has Valid Settings
 def checkGameValidity(self, settings):
-    # Checks if Bombs < Board Spaces
+    # Checks if num Bombs < num Board Spaces
     boardSpaces = settings['rows'] * settings['columns']
     if settings['bombs'] > boardSpaces:
         print('Invalid Game: too many Bombs')
@@ -78,7 +78,7 @@ def applySettings(settings, customSize=0, customBombs=0):
         settings['columns'] = int(customSizeValues[1])
         settings['bombs'] = int(customBombs.get())
 
-# Checks Tiles adjacent to Bomb and adds to Count
+# Checks Tiles adjacent to Bomb and adds to Surrounding-Bomb Count
 def incrementSurroundingBombCount(board, row, column):
     ROWCOLNUM = 3  # Max Number of Columns and Rows surrounding a Tile
 
@@ -125,11 +125,12 @@ def generateBoard(numRows, numColumns, numBombs):
 
     return board
 
-def buttonLeftClick(coordinates, dictionary, board):
+# Opens/Activates a Tile
+def buttonLeftClick(coordinates, dictionary, board, window):
     global bombCounter
-    #print(dictionary[coordinates])
     currTile = dictionary[coordinates]
 
+    # State Changes of Tile
     if dictionary[coordinates]['state'] != 2: # if it's not red marked
         currTile['button']['bg'] = '#bebebe'
         currTile['button']['text'] = board[coordinates[0]][coordinates[1]]
@@ -138,23 +139,23 @@ def buttonLeftClick(coordinates, dictionary, board):
         currTile['button']['state'] = tkinter.DISABLED
 
         if board[coordinates[0]][coordinates[1]] == '0':
-            clearZeroes(coordinates, dictionary, board)
+            clearZeroes(coordinates, dictionary, board, window)
 
-        elif board[coordinates[0]][coordinates[1]] == 'B':
+        elif board[coordinates[0]][coordinates[1]] == 'B':  # Lose Condition
             print('U LOST')
             #Display an End Game Screen
             exit()
 
-    if bombCounter == 0:  # AND ALL TILES HAVE BEEN SELECTED
-        #try to get all coordinates of red-flags to see if it's bomb
-        checkWin(dictionary, board)
-        #print('LWIN?')
+    # Win Condition
+    if bombCounter == 0:
+        checkWin(dictionary, board, window)
 
-# Marks Bomb Location (Also important for win-checking)
-def buttonRightClick(coordinates, dictionary, board, remainingBombLabel):
+# Marks Bomb Location
+def buttonRightClick(coordinates, dictionary, board, remainingBombLabel, window):
     global bombCounter
     currButton = dictionary[coordinates]
 
+    # State Changes
     if currButton['state'] != 0:  # Checks if Button is still Enabled
         if currButton['button']['bg'] == 'SystemButtonFace':  # Select, note SystemButtonFace is the default Colour
             dictionary[coordinates]['button']['bg'] = 'red'
@@ -165,45 +166,40 @@ def buttonRightClick(coordinates, dictionary, board, remainingBombLabel):
             currButton['state'] = 1
             bombCounter += 1
 
-    #print(bombCounter)
-    remainingBombLabel['text'] = f"Bombs Remaining: {bombCounter}"
+    remainingBombLabel['text'] = f"Bombs Remaining: {bombCounter}"  # Changes to remaining Bombs in Display
 
-    if bombCounter == 0:  # AND ALL TILES HAVE BEEN SELECTED
-        #try to get all coordinates of red-flags to see if it's bomb
-        checkWin(dictionary, board)
-        #print('RWIN?')
+    # Win Condition
+    if bombCounter == 0:
+        checkWin(dictionary, board, window)
 
-def clearZeroes(coordinates, dictionary, board):
-    #print(f"Current Coordinates: ({coordinates[0], coordinates[1]})")
-    canLeft = 0
-    canRight = 0
-    canUp = 0
-    canDown = 0
+# Clears Zones without Adjacent Bombs
+def clearZeroes(coordinates, dictionary, board, window):
+    canLeft = 0  # Ability to expand leftwards
+    canRight = 0  # Ability to expand rightwards
+    canUp = 0  # Ability to expand upwards
+    canDown = 0  # Ability to expand downwards
 
     # Up
     upElement = board[coordinates[0]-1][coordinates[1]]
     if coordinates[0]-1 >= 0:  # ensures no wrapping
-        if upElement != 'B':  # checks if can go up
-            #print('expand up')
+        if upElement != 'B':  # checks if can go up (not a bomb)
             upElementCoordinates = (coordinates[0]-1, coordinates[1])
-            upElementState = dictionary[upElementCoordinates]['state']  # checks if it has been pressed or not
-            #print(f"Up Element State: {upElementState}")
+            upElementState = dictionary[upElementCoordinates]['state']
             canUp = 1
             if upElementState == 1:  # button still active
                 #print('expand up')
-                buttonLeftClick(upElementCoordinates, dictionary, board)
+                buttonLeftClick(upElementCoordinates, dictionary, board, window)
 
     # Down
     try:  # ensures that there is a row below
         downElement = board[coordinates[0]+1][coordinates[1]]
         if downElement != 'B':
-            #print('expand down')
             downElementCoordinates = (coordinates[0]+1, coordinates[1])
             downElementState = dictionary[downElementCoordinates]['state']
             canDown = 1
             if downElementState == 1:
                 #print('expand down')
-                buttonLeftClick(downElementCoordinates, dictionary, board)
+                buttonLeftClick(downElementCoordinates, dictionary, board, window)
     except IndexError:
         pass
 
@@ -211,56 +207,74 @@ def clearZeroes(coordinates, dictionary, board):
     leftElement = board[coordinates[0]][coordinates[1]-1]
     if coordinates[1]-1 >= 0:  # ensures no wrapping
         if leftElement != 'B':
-            #print('expand left')
             leftElementCoordinates = (coordinates[0], coordinates[1]-1)
             leftElementState = dictionary[leftElementCoordinates]['state']
             canLeft = 1
             if leftElementState == 1:
                 #print('expand left')
-                buttonLeftClick(leftElementCoordinates, dictionary, board)
+                buttonLeftClick(leftElementCoordinates, dictionary, board, window)
 
     # Right
     try:  # ensures that there is a row below
         rightElement = board[coordinates[0]][coordinates[1]+1]
         if rightElement != 'B':
-            #print('expand right')
             rightElementCoordinates = (coordinates[0], coordinates[1]+1)
             rightElementState = dictionary[rightElementCoordinates]['state']
             canRight = 1
             if rightElementState == 1:
                 #print('expand right')
-                buttonLeftClick(rightElementCoordinates, dictionary, board)
+                buttonLeftClick(rightElementCoordinates, dictionary, board, window)
     except IndexError:
         pass
 
-    #Diagonals
+    # Diagonals
     # Upleft
     if canUp == 1 and canLeft == 1:
         upleftElementCoordinates = (coordinates[0]-1, coordinates[1]-1)
         upleftElementState = dictionary[upleftElementCoordinates]['state']
         if upleftElementState == 1:
-            buttonLeftClick(upleftElementCoordinates, dictionary, board)
+            buttonLeftClick(upleftElementCoordinates, dictionary, board, window)
 
     # Upright
     if canUp == 1 and canRight == 1:
         uprightElementCoordinates = (coordinates[0] - 1, coordinates[1] + 1)
         uprightElementState = dictionary[uprightElementCoordinates]['state']
         if uprightElementState == 1:
-            buttonLeftClick(uprightElementCoordinates, dictionary, board)
+            buttonLeftClick(uprightElementCoordinates, dictionary, board, window)
 
     # Downleft
     if canDown == 1 and canLeft == 1:
         downLeftElementCoordinates = (coordinates[0] + 1, coordinates[1] - 1)
         downleftElementState = dictionary[downLeftElementCoordinates]['state']
         if downleftElementState == 1:
-            buttonLeftClick(downLeftElementCoordinates, dictionary, board)
+            buttonLeftClick(downLeftElementCoordinates, dictionary, board, window)
 
     # Downright
     if canDown == 1 and canRight == 1:
         downRightElementCoordinates = (coordinates[0] + 1, coordinates[1] + 1)
         downRightElementState = dictionary[downRightElementCoordinates]['state']
         if downRightElementState == 1:
-            buttonLeftClick(downRightElementCoordinates, dictionary, board)
+            buttonLeftClick(downRightElementCoordinates, dictionary, board, window)
+
+# Check Win Condition
+def checkWin(dictionary, board, window):
+    keyList = list(dictionary.keys())
+    numMarkedBombs = 0
+    numSafeTiles = 0  # tiles that aren't bombs
+    numTiles = len(board) * len(board[0])  # numRows = len(board); numColumns = len(board[0])
+
+    for key in keyList:
+        tileState = dictionary[key]['state']
+        if tileState == 0:
+            numSafeTiles += 1
+        elif tileState == 2:
+            numMarkedBombs += 1
+
+    print(f"Safe Tiles = {numSafeTiles}, Marked Bombs = {numMarkedBombs}, Num Tiles = {numTiles}")
+
+    if numMarkedBombs + numSafeTiles == numTiles:
+        print("U WIN MATE") #add winning screen
+        openWinScreen(window)
 
 
 # Displays the Minesweeper Board
@@ -281,64 +295,46 @@ def displayBoard(settings):
     # Creates a Rows x Columns Grid of Buttons
     buttonDictionary = {}
 
-    #modifying
+    # Attributes of each Button
     for row in range(settings['rows']):
         for column in range(settings['columns']):
-            #button = Button(frame, height=1, width=2, text='', command=lambda coord=(row, column): buttonLeftClick(coord, buttonDictionary, settings['board']))  # create a button inside frame  || future, should check where it is in the button list to correspond to a point
             button = Button(frame, height=1, width=2, text='')
-            button.bind("<Button-1>", lambda event, coord=(row, column): buttonLeftClick(coord, buttonDictionary, settings['board']))
-            button.bind("<Button-3>", lambda event, coord=(row, column): buttonRightClick(coord, buttonDictionary, settings['board'], bombCountLabel))
+            button.bind("<Button-1>", lambda event, coord=(row, column): buttonLeftClick(coord, buttonDictionary, settings['board'], root))
+            button.bind("<Button-3>", lambda event, coord=(row, column): buttonRightClick(coord, buttonDictionary, settings['board'], bombCountLabel, root))
 
             coords = (row, column)
             buttonDictionary[coords] = {'button': button, 'coordinates': coords, 'state': 1}
 
-    #rendering
+    # Rendering each Button
     for row in range(settings['rows']):
         Grid.rowconfigure(frame, row, weight=1)
         for column in range(settings['columns']):
-            Grid.columnconfigure(frame, column, weight=1)  # original
-            buttonDictionary[(row,column)]['button'].grid(row=row, column=column, sticky=N + S + E + W)  # original
+            Grid.columnconfigure(frame, column, weight=1)
+            buttonDictionary[(row,column)]['button'].grid(row=row, column=column, sticky=N + S + E + W)
     bombCountLabel = Label(text=f"Bombs Remaining: {bombCounter}")
     bombCountLabel.grid(row=settings['rows'] + 1, column=0)
 
-
-    print(buttonDictionary)
+    #print(buttonDictionary)
     #root.mainloop()  #test, i think from a vid i saw it's bad to nest tkinter loops (check vid history)
 
-# Check Win Condition
-def checkWin(dictionary, board):
-    keyList = list(dictionary.keys())
-    valList = list(dictionary.values())
-    #print(f"\tKeyList: {keyList}")
-    #print(f"\tValList: {valList}")
+# Finished Game Window
+def openWinScreen(gameWindow):
+    winScreen = Tk()
+    win = Label(winScreen, text='Congratulations, you win!')
+    win.grid(row=0, column=0)
+    escape = Button(winScreen, text='exit', command=lambda: exitGame(gameWindow, winScreen))
+    escape.grid(row=1, column=0)
 
-    numMarkedBombs = 0
-    numSafeTiles = 0 #tiles that aren't bombs
-    numTiles = len(board) * len(board[0])  # numRows = len(board); numColumns = len(board[0])  * all rows should be of equal length
-
-    for key in keyList:
-        tileState = dictionary[key]['state']
-        tileAttributes = dictionary[key]
-        if tileState == 0:
-            numSafeTiles += 1
-        elif tileState == 2:
-            numMarkedBombs += 1
-
-    print(f"Safe Tiles = {numSafeTiles}, Marked Bombs = {numMarkedBombs}, Num Tiles = {numTiles}")
-
-    if numMarkedBombs + numSafeTiles == numTiles:
-        print("U WIN MATE")
-    return
-
+def exitGame(gameScreen, winScreen):
+    gameScreen.destroy()
+    winScreen.destroy()
 
 # TESTING FUNCTIONS
-def displaySettings():
-    return
 def printBoard(board):
     # test, prints out the board
     # makes everything on the board a string so grid is aligned in print testing
     for i in range(len(board)):
-        for j in range(len(board[0])): # assumption that every row has the same amount of tiles
+        for j in range(len(board[0])):  # assumption that every row has the same amount of tiles
             board[i][j] = str(board[i][j])
 
     print('\n---------------------------------------------------------------------')
