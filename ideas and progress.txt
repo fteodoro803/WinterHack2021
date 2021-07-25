@@ -21,7 +21,7 @@ PROGRESS
     - Timer ()
 - Manual Game (/)
     - Clear Field of Zeroes (/)
-    - Button Functionality ()
+    - Button Functionality (/)
         - Hide/Show (Bomb, Number, Empty, etc) (/)
             - Image ()
         - End Game if Bomb (/)
