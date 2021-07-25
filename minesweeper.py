@@ -330,7 +330,7 @@ def openWinScreen(game_window):
     winScreen = Tk()
     win = Label(winScreen, text='Congratulations, you win!')
     win.grid(row=0, column=1)
-    retry = Button(winScreen, text='retry')
+    retry = Button(winScreen, text='retry', state='disabled')
     retry.grid(row=1, column=0)
     escape = Button(winScreen, text='exit', command=lambda: exitGame(game_window, winScreen))
     escape.grid(row=1, column=2)
@@ -341,7 +341,7 @@ def openLoseScreen(game_window):
     loseScreen = Tk()
     lose = Label(loseScreen, text='Sorry, you lose :(')
     lose.grid(row=0, column=1)
-    retry = Button(loseScreen, text='retry')
+    retry = Button(loseScreen, text='retry', state='disabled')
     retry.grid(row=1, column=0)
     escape = Button(loseScreen, text='exit', command=lambda: exitGame(game_window, loseScreen))
     escape.grid(row=1, column=2)
@@ -474,7 +474,7 @@ def minesweeper(settingsWindow, settings, customButton, customSize, customBombs)
     settingsWindow.destroy()
     board = generateBoard(settings['rows'], settings['columns'], settings['bombs'])
     settings['board'] = board
-    print(f"Settings: {settings}")
+    #print(f"Settings: {settings}")
     displayBoard(settings)
 
 
